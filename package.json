@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/mocha --reporter spec",
-    "deploy": "echo deploy to gcf",
-    "teardown": "echo clean gcf and co"
+    "setup": ". ./setup.sh",
+    "teardown": ". ./teardown.sh"
   },
   "repository": {
     "type": "git",

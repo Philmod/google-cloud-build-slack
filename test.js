@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const should = require('should');
 const async = require('async');
 const lib = require('./index.js');
@@ -51,12 +52,21 @@ describe('createSlackMessage', () => {
   });
 });
 
+function cleanConfig(callback) {
+  let config = {
+    SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/XXX',
+  }
+  fs.writeFile('config.json', JSON.stringify(config), 'utf8', callback);
+}
+
 describe('subscribe', () => {
+  beforeEach(cleanConfig);
+  afterEach(cleanConfig);
+
   beforeEach(() => {
-    let self = this;
-    self.webhookCalled = false;
+    this.webhookCalled = false;
     lib.webhook.send = (message, callback) => {
-      self.webhookCalled = true;
+      this.webhookCalled = true;
       callback()
     }
   });
@@ -73,7 +83,7 @@ describe('subscribe', () => {
     });
   });
 
-  it('should not send a message for non final status', (done) => {
+  it('should not send a message for non final status (by default)', (done) => {
     let testCases = [
       {
         status: 'QUEUED',
@@ -101,6 +111,7 @@ describe('subscribe', () => {
       },
     ];
     async.forEach(testCases, (tc, doneEach) => {
+      this.webhookCalled = false;
       let event = {
         data: {
           data: new Buffer(JSON.stringify({
@@ -113,5 +124,53 @@ describe('subscribe', () => {
         doneEach();
       });
     }, done);
+  });
+
+  it('should a message only for specified status', (done) => {
+    lib.status = ['FAILURE', 'INTERNAL_ERROR'];
+    let testCases = [
+      {
+        status: 'QUEUED',
+        want: false,
+      },
+      {
+        status: 'WORKING',
+        want: false,
+      },
+      {
+        status: 'SUCCESS',
+        want: false,
+      },
+      {
+        status: 'FAILURE',
+        want: true,
+      },
+      {
+        status: 'INTERNAL_ERROR',
+        want: true,
+      },
+      {
+        status: 'TIMEOUT',
+        want: false,
+      },
+    ];
+    async.forEach(testCases, (tc, doneEach) => {
+      this.webhookCalled = false;
+      let event = {
+        data: {
+          data: new Buffer(JSON.stringify({
+            status: tc.status,
+          })).toString('base64')
+        }
+      };
+      lib.subscribe(event, () => {
+        this.webhookCalled.should.equal(tc.want, tc.status);
+        doneEach();
+      });
+    }, function() {
+      // clean the status list.
+      lib.GC_SLACK_STATUS = null;
+      done();
+    });
   });
 });

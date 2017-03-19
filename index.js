@@ -1,14 +1,16 @@
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
+const config = require('./config.json');
 
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
-module.exports.webhook = new IncomingWebhook(SLACK_WEBHOOK_URL);
+module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
+module.exports.status = config.GC_SLACK_STATUS;
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = (event, callback) => {
   let build = module.exports.eventToBuild(event.data.data);
 
-  // Skip if not a termination status.
-  if (build.status === 'QUEUED' || build.status === 'WORKING') {
+  // Skip if the current status is not in the status list.
+  let status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+  if (status.indexOf(build.status) == -1) {
     return callback();
   }
 
