@@ -7,16 +7,16 @@ module.exports.status = config.GC_SLACK_STATUS;
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = (event, callback) => {
-  let build = module.exports.eventToBuild(event.data.data);
+  const build = module.exports.eventToBuild(event.data.data);
 
   // Skip if the current status is not in the status list.
-  let status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
-  if (status.indexOf(build.status) == -1) {
+  const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+  if (status.indexOf(build.status) === -1) {
     return callback();
   }
 
   // Send message to slack.
-  let message = module.exports.createSlackMessage(build);
+  const message = module.exports.createSlackMessage(build);
   module.exports.webhook.send(message, (err, res) => {
     if (err) console.log('Error:', err);
     callback(err);
@@ -24,7 +24,7 @@ module.exports.subscribe = (event, callback) => {
 };
 
 // eventToBuild transforms pubsub event message to a build object.
-module.exports.eventToBuild = data => {
+module.exports.eventToBuild = (data) => {
   return JSON.parse(new Buffer(data, 'base64').toString());
 }
 
@@ -38,10 +38,10 @@ const STATUS_COLOR = {
   'INTERNAL_ERROR': '#EA4335', // red
 };
 
-// createSlackMessage create a
-module.exports.createSlackMessage = build => {
+// createSlackMessage create a message from a build object.
+module.exports.createSlackMessage = (build) => {
   let message = {
-    text: 'Build `' + build.id + '` finished',
+    text: `Build \`${build.id}\` finished`,
     mrkdwn: true,
     attachments: [
       {
@@ -64,7 +64,7 @@ module.exports.createSlackMessage = build => {
 
   // Add images to the message.
   let images = build.images || [];
-  for (var i = 0, len = images.length; i < len; i++) {
+  for (let i = 0, len = images.length; i < len; i++) {
     message.attachments[0].fields.push({
       title: 'Image',
       value: images[i]
