@@ -28,25 +28,35 @@ module.exports.eventToBuild = data => {
   return JSON.parse(new Buffer(data, 'base64').toString());
 }
 
+const DEFAULT_COLOR = '#4285F4'; // blue
+const STATUS_COLOR = {
+  'QUEUED': DEFAULT_COLOR,
+  'WORKING': DEFAULT_COLOR,
+  'SUCCESS': '#34A853', // green
+  'FAILURE': '#EA4335', // red
+  'TIMEOUT': '#FBBC05', // yellow
+  'INTERNAL_ERROR': '#EA4335', // red
+};
+
 // createSlackMessage create a
 module.exports.createSlackMessage = build => {
   let message = {
-    text: "Build `" + build.id + "` finished",
+    text: 'Build `' + build.id + '` finished',
     mrkdwn: true,
     attachments: [
       {
-        color: "#4285f4",
-        title: "Build logs",
+        color: STATUS_COLOR[build.status] || DEFAULT_COLOR,
+        title: 'Build logs',
         title_link: build.logUrl,
         fields: [{
-          title: "Status",
+          title: 'Status',
           value: build.status
         }, {
-          title: "Duration",
+          title: 'Duration',
           value: humanizeDuration(new Date(build.finishTime) - new Date(build.startTime))
         }],
-        footer: "Google Cloud Container Builder",
-        footer_icon: "https://3.bp.blogspot.com/-gAgUjSdOTXk/VkJIor02vkI/AAAAAAAAB78/YjOw_3Rk1Qw/s1600/container%2Bregistry%2B2.png",
+        footer: 'Google Cloud Container Builder',
+        footer_icon: 'https://3.bp.blogspot.com/-gAgUjSdOTXk/VkJIor02vkI/AAAAAAAAB78/YjOw_3Rk1Qw/s1600/container%2Bregistry%2B2.png',
         ts: Math.round(new Date(build.finishTime).getTime()/1000)
       }
     ]
@@ -56,7 +66,7 @@ module.exports.createSlackMessage = build => {
   let images = build.images || [];
   for (var i = 0, len = images.length; i < len; i++) {
     message.attachments[0].fields.push({
-      title: "Image",
+      title: 'Image',
       value: images[i]
     });
   }

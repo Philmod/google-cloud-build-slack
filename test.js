@@ -70,6 +70,44 @@ describe('createSlackMessage', () => {
     attachment.fields[nbCommonFields].value.should.equal('image-1');
     attachment.fields[nbCommonFields+1].value.should.equal('image-2');
   });
+
+  it('should use the right color depending on the status', () => {
+    let build = {
+      id: 'build-id',
+      finishTime: Date.now(),
+    };
+    let testCases = [
+      {
+        status: 'QUEUED',
+        want: '#4285F4',
+      },
+      {
+        status: 'WORKING',
+        want: '#4285F4',
+      },
+      {
+        status: 'SUCCESS',
+        want: '#34A853',
+      },
+      {
+        status: 'FAILURE',
+        want: '#EA4335',
+      },
+      {
+        status: 'INTERNAL_ERROR',
+        want: '#EA4335',
+      },
+      {
+        status: 'TIMEOUT',
+        want: '#FBBC05',
+      },
+    ];
+    testCases.forEach(function(tc) {
+      build.status = tc.status;
+      let message = lib.createSlackMessage(build);
+      message.attachments[0].color.should.equal(tc.want, tc.status);
+    });
+  });
 });
 
 function cleanConfig(callback) {
