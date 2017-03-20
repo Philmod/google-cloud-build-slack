@@ -13,7 +13,8 @@
     "url": "git+https://github.com/Philmod/google-container-slack.git"
   },
   "dependencies": {
-    "@slack/client": "3.9.0"
+    "@slack/client": "3.9.0",
+    "humanize-duration": "3.10.0"
   },
   "devDependencies": {
     "async": "^2.1.5",

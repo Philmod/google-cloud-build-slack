@@ -1,4 +1,5 @@
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
+const humanizeDuration = require('humanize-duration');
 const config = require('./config.json');
 
 module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
@@ -40,8 +41,11 @@ module.exports.createSlackMessage = build => {
         fields: [{
           title: "Status",
           value: build.status
+        }, {
+          title: "Duration",
+          value: humanizeDuration(new Date(build.finishTime) - new Date(build.startTime))
         }],
-        footer: "Google Container Builder",
+        footer: "Google Cloud Container Builder",
         footer_icon: "https://3.bp.blogspot.com/-gAgUjSdOTXk/VkJIor02vkI/AAAAAAAAB78/YjOw_3Rk1Qw/s1600/container%2Bregistry%2B2.png",
         ts: Math.round(new Date(build.finishTime).getTime()/1000)
       }
