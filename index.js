@@ -56,7 +56,7 @@ module.exports.createSlackMessage = (build) => {
           value: humanizeDuration(new Date(build.finishTime) - new Date(build.startTime))
         }],
         footer: 'Google Cloud Container Builder',
-        footer_icon: 'https://3.bp.blogspot.com/-gAgUjSdOTXk/VkJIor02vkI/AAAAAAAAB78/YjOw_3Rk1Qw/s1600/container%2Bregistry%2B2.png',
+        footer_icon: 'https://ssl.gstatic.com/pantheon/images/containerregistry/container_registry_color.png',
         ts: Math.round(new Date(build.finishTime).getTime()/1000)
       }
     ]
