@@ -52,5 +52,5 @@ If you use the setup script with the same `FUNCTION_NAME`, it will update the ex
 After creating an application on Slack, active the Incoming Webhooks. You'll find the url on that page:
 ![slack webhook](https://cldup.com/aQVqcFCuAH.png)
 
-### What do I have to source the script?
+### Why do I have to source the script?
 In the case where a `BUCKET_NAME` is not defined, a random one is generated. And in order to delete it during the teardown, the variable has to be exported from the setup script.
