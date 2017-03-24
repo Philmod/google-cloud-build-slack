@@ -41,4 +41,7 @@ gsutil mb -p $PROJECT_ID gs://$BUCKET_NAME
 if [ -z "$FUNCTION_NAME" ]; then
   export FUNCTION_NAME="containerSlackIntegration"
 fi
-gcloud beta functions deploy $FUNCTION_NAME --stage-bucket $BUCKET_NAME --trigger-topic cloud-builds --entry-point subscribe
+if [ -z "$REGION" ]; then
+  export REGION="us-central1"
+fi
+gcloud beta functions deploy $FUNCTION_NAME --stage-bucket $BUCKET_NAME --trigger-topic cloud-builds --entry-point subscribe --region $REGION
