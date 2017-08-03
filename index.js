@@ -52,6 +52,12 @@ module.exports.createSlackMessage = (build) => {
           title: 'Status',
           value: build.status
         }, {
+          title: 'Repository',
+          value: build.source.repoSource.repoName
+        }, {
+          title: 'Branch',
+          value: build.source.repoSource.branchName
+        }, {
           title: 'Duration',
           value: humanizeDuration(new Date(build.finishTime) - new Date(build.startTime))
         }],
