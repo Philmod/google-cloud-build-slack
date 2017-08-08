@@ -62,6 +62,20 @@ module.exports.createSlackMessage = (build) => {
     ]
   };
 
+  // Add source information to the message.
+  let source = build.source || null;
+  if (source) {
+    message.attachments[0].fields.push({
+      title: 'Repository',
+      value: build.source.repoSource.repoName
+    });
+
+    message.attachments[0].fields.push({
+      title: 'Branch',
+      value: build.source.repoSource.branchName
+    });
+  }
+
   // Add images to the message.
   let images = build.images || [];
   for (let i = 0, len = images.length; i < len; i++) {
