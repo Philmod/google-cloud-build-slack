@@ -1,6 +1,6 @@
 # google-container-slack
 
-Slack integration for Google Cloud Container Builder, using Google Cloud Functions to post messages to Slack when a build reaches a specific state.
+Slack integration for Google Cloud Build, using Google Cloud Functions to post messages to Slack when a build reaches a specific state.
 
 ## Setup
 - Create a Slack app, and copy the webhook URL:
