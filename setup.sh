@@ -39,7 +39,7 @@ gsutil mb -p $PROJECT_ID gs://$BUCKET_NAME
 
 # Deploy function.
 if [ -z "$FUNCTION_NAME" ]; then
-  export FUNCTION_NAME="containerSlackIntegration"
+  export FUNCTION_NAME="cloudBuildSlackIntegration"
 fi
 if [ -z "$REGION" ]; then
   export REGION="us-central1"
