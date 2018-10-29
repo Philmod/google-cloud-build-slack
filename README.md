@@ -1,4 +1,4 @@
-# google-container-slack
+# google-cloud-build-slack
 
 Slack integration for Google Cloud Build, using Google Cloud Functions to post messages to Slack when a build reaches a specific state.
 
