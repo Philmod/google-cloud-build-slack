@@ -10,7 +10,7 @@ module.exports.subscribe = (event, callback) => {
   const build = module.exports.eventToBuild(event.data.data);
 
   // Skip if the current status is not in the status list.
-  const status = module.exports.status || ['WORKING', 'SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+  const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
   if (status.indexOf(build.status) === -1) {
     return callback();
   }
@@ -41,7 +41,7 @@ module.exports.createSlackMessage = (build) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
-  const timestamp = Math.round(buildFinishTime.getTime() / 1000);
+  const timestamp = Math.round((buildFinishTime || buildStartTime).getTime() / 1000);
   const isWorking = build.status === 'WORKING';
 
   const text = (isWorking)
