@@ -1,4 +1,3 @@
-'use strict';
 
 const fs = require('fs');
 const should = require('should');
@@ -13,7 +12,7 @@ const MS_PER_MINUTE = 60000;
 
 describe('eventToBuild', () => {
   it('should transform a base64 build to an object', () => {
-    let build = lib.eventToBuild(base64Build);
+    const build = lib.eventToBuild(base64Build);
     should.exist(build.projectId);
     build.projectId.should.equal('node-example-gke');
   });
@@ -21,18 +20,18 @@ describe('eventToBuild', () => {
 
 describe('createSlackMessage', () => {
   it('should create a slack message', () => {
-    let build = {
+    const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
       status: 'SUCCESS',
       finishTime: '2017-03-19T00:08:12.220502Z',
     };
-    let message = lib.createSlackMessage(build);
+    const message = lib.createSlackMessage(build);
 
-    message.text.should.equal("Build `build-id` finished");
+    message.text.should.equal('Build `build-id` finished');
     should.exist(message.attachments);
     message.attachments.should.have.length(1);
-    let attachment = message.attachments[0];
+    const attachment = message.attachments[0];
     attachment.title_link.should.equal(build.logUrl);
     attachment.ts.should.equal(1489882092);
     attachment.fields.should.have.length(nbCommonFields);
@@ -40,43 +39,43 @@ describe('createSlackMessage', () => {
   });
 
   it('should include the build duration as a field', () => {
-    let now = Date.now();
-    let deltaInMinutes = 11;
-    let build = {
+    const now = Date.now();
+    const deltaInMinutes = 11;
+    const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
       status: 'SUCCESS',
-      startTime: new Date(now - deltaInMinutes*MS_PER_MINUTE),
+      startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
       finishTime: now,
     };
-    let message = lib.createSlackMessage(build);
+    const message = lib.createSlackMessage(build);
 
-    let attachment = message.attachments[0];
-    attachment.fields[1].value.should.equal(deltaInMinutes + ' minutes');
+    const attachment = message.attachments[0];
+    attachment.fields[1].value.should.equal(`${deltaInMinutes} minutes`);
   });
 
   it('should create a slack message with images', () => {
-    let build = {
+    const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
       status: 'SUCCESS',
       finishTime: Date.now(),
       images: ['image-1', 'image-2'],
     };
-    let message = lib.createSlackMessage(build);
+    const message = lib.createSlackMessage(build);
 
-    let attachment = message.attachments[0];
+    const attachment = message.attachments[0];
     attachment.fields.should.have.length(nbCommonFields + build.images.length);
     attachment.fields[nbCommonFields].value.should.equal('image-1');
-    attachment.fields[nbCommonFields+1].value.should.equal('image-2');
+    attachment.fields[nbCommonFields + 1].value.should.equal('image-2');
   });
 
   it('should use the right color depending on the status', () => {
-    let build = {
+    const build = {
       id: 'build-id',
       finishTime: Date.now(),
     };
-    let testCases = [
+    const testCases = [
       {
         status: 'QUEUED',
         want: '#4285F4',
@@ -102,18 +101,18 @@ describe('createSlackMessage', () => {
         want: '#FBBC05',
       },
     ];
-    testCases.forEach(function(tc) {
+    testCases.forEach((tc) => {
       build.status = tc.status;
-      let message = lib.createSlackMessage(build);
+      const message = lib.createSlackMessage(build);
       message.attachments[0].color.should.equal(tc.want, tc.status);
     });
   });
 });
 
 function cleanConfig(callback) {
-  let config = {
+  const config = {
     SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/XXX',
-  }
+  };
   fs.writeFile('config.json', JSON.stringify(config), 'utf8', callback);
 }
 
@@ -125,15 +124,15 @@ describe('subscribe', () => {
     this.webhookCalled = false;
     lib.webhook.send = (message, callback) => {
       this.webhookCalled = true;
-      callback()
-    }
+      callback();
+    };
   });
 
   it('should subscribe to pubsub message and send a slack message', (done) => {
-    let event = {
+    const event = {
       data: {
-        data: base64Build
-      }
+        data: base64Build,
+      },
     };
     lib.subscribe(event, () => {
       this.webhookCalled.should.be.true();
@@ -142,7 +141,7 @@ describe('subscribe', () => {
   });
 
   it('should not send a message for non final status (by default)', (done) => {
-    let testCases = [
+    const testCases = [
       {
         status: 'QUEUED',
         want: false,
@@ -170,12 +169,12 @@ describe('subscribe', () => {
     ];
     async.forEach(testCases, (tc, doneEach) => {
       this.webhookCalled = false;
-      let event = {
+      const event = {
         data: {
           data: new Buffer(JSON.stringify({
             status: tc.status,
-          })).toString('base64')
-        }
+          })).toString('base64'),
+        },
       };
       lib.subscribe(event, () => {
         this.webhookCalled.should.equal(tc.want);
@@ -186,7 +185,7 @@ describe('subscribe', () => {
 
   it('should a message only for specified status', (done) => {
     lib.status = ['FAILURE', 'INTERNAL_ERROR'];
-    let testCases = [
+    const testCases = [
       {
         status: 'QUEUED',
         want: false,
@@ -214,18 +213,18 @@ describe('subscribe', () => {
     ];
     async.forEach(testCases, (tc, doneEach) => {
       this.webhookCalled = false;
-      let event = {
+      const event = {
         data: {
           data: new Buffer(JSON.stringify({
             status: tc.status,
-          })).toString('base64')
-        }
+          })).toString('base64'),
+        },
       };
       lib.subscribe(event, () => {
         this.webhookCalled.should.equal(tc.want, tc.status);
         doneEach();
       });
-    }, function() {
+    }, () => {
       // clean the status list.
       lib.GC_SLACK_STATUS = null;
       done();
