@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'ci']
+
+# Pass manually the commit and branch to codecov,
+# as Google Cloud Build GitHub App doesn't have the full git repo, only the code itself.
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'codecov', '--', '--disable=detect', '--commit=$COMMIT_SHA', '--branch=$BRANCH_NAME']
