@@ -6,4 +6,14 @@ steps:
   args: ['run', 'ci']
 
 - name: 'gcr.io/node-example-gke/codecov'
-  args: ['-t=9f85adb7-4781-4cf9-80dd-c08882620b0a', '-C=$COMMIT_SHA', '-B=$BRANCH_NAME', '-b=$BUILD_ID', 'T=$TAG_NAME']
+  args: 
+  - '-t'
+  - '9f85adb7-4781-4cf9-80dd-c08882620b0a'
+  - '-C'
+  - '$COMMIT_SHA'
+  - '-B'
+  - '$BRANCH_NAME'
+  - '-b'
+  - '$BUILD_ID'
+  - 'T'
+  - '$TAG_NAME'
