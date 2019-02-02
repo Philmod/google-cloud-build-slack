@@ -75,6 +75,22 @@ describe('createSlackMessage', () => {
     attachment.fields[1].value.should.equal(`${deltaInMinutes} minutes`);
   });
 
+  it('should not include build duration as a field for start notifications', () => {
+    const now = Date.now();
+    const deltaInMinutes = 11;
+    const build = {
+      id: 'build-id',
+      logUrl: 'https://logurl.com',
+      status: 'WORKING',
+      startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
+      finishTime: null,
+    };
+    const message = lib.createSlackMessage(build);
+
+    const attachment = message.attachments[0];
+    attachment.fields.should.not.containEql({ title: 'Duration', value: `${deltaInMinutes} minutes` });
+  });
+
   it('should create a slack message with images', () => {
     const build = {
       id: 'build-id',
