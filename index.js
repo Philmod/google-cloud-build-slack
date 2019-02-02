@@ -41,8 +41,8 @@ module.exports.createSlackMessage = (build) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
-  const timestamp = Math.round((buildFinishTime || buildStartTime).getTime() / 1000);
   const isWorking = build.status === 'WORKING';
+  const timestamp = Math.round(((isWorking) ? buildStartTime : buildFinishTime).getTime() / 1000);
 
   const text = (isWorking)
     ? `Build \`${build.id}\` started`
