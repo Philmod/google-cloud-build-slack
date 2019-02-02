@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec",
-    "ci": "NODE_ENV=test node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec && node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov",
-    "codecov": "node_modules/.bin/codecov --token=9f85adb7-4781-4cf9-80dd-c08882620b0a",
+    "ci": "node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec && node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov",
     "setup": "./setup.sh",
     "teardown": "./teardown.sh"
   },
@@ -20,7 +19,6 @@
   },
   "devDependencies": {
     "async": "^2.6.1",
-    "codecov": "^3.1.0",
     "mocha": "5.2.0",
     "nyc": "^13.1.0",
     "should": "13.2.3"

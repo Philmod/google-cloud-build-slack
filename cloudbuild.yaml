@@ -5,7 +5,5 @@ steps:
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run', 'ci']
 
-# Pass manually the commit and branch to codecov,
-# as Google Cloud Build GitHub App doesn't have the full git repo, only the code itself.
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['run', 'codecov', '--', '--disable=detect', '--commit=$COMMIT_SHA', '--branch=$BRANCH_NAME']
+- name: 'gcr.io/node-example-gke/codecov'
+  args: ['-t=9f85adb7-4781-4cf9-80dd-c08882620b0a', '-C=$COMMIT_SHA', '-B=$BRANCH_NAME', '-b=$BUILD_ID', 'T=$TAG_NAME']
