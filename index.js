@@ -24,7 +24,7 @@ module.exports.subscribe = (event, callback) => {
 };
 
 // eventToBuild transforms pubsub event message to a build object.
-module.exports.eventToBuild = (data) => JSON.parse(new Buffer(data, 'base64').toString());
+module.exports.eventToBuild = data => JSON.parse(new Buffer(data, 'base64').toString());
 
 const DEFAULT_COLOR = '#4285F4'; // blue
 const STATUS_COLOR = {
