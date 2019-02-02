@@ -38,6 +38,27 @@ describe('createSlackMessage', () => {
     attachment.fields[0].value.should.equal(build.status);
   });
 
+  it('should create a slack message saying the build started, with start timestamp if status WORKING', () => {
+    const build = {
+      id: 'build-id',
+      logUrl: 'https://logurl.com',
+      status: 'WORKING',
+      startTime: '2017-03-19T00:08:12.220502Z',
+      finishTime: null,
+    };
+
+    const message = lib.createSlackMessage(build);
+
+    message.text.should.equal('Build `build-id` started');
+    should.exist(message.attachments);
+    message.attachments.should.have.length(1);
+    const attachment = message.attachments[0];
+    attachment.title_link.should.equal(build.logUrl);
+    attachment.ts.should.equal(1489882092);
+    attachment.fields.should.have.length(nbCommonFields - 1);
+    attachment.fields[0].value.should.equal(build.status);
+  });
+
   it('should include the build duration as a field', () => {
     const now = Date.now();
     const deltaInMinutes = 11;
@@ -183,7 +204,7 @@ describe('subscribe', () => {
     }, done);
   });
 
-  it('should a message only for specified status', (done) => {
+  it('should send a message only for specified status', (done) => {
     lib.status = ['FAILURE', 'INTERNAL_ERROR'];
     const testCases = [
       {
@@ -209,6 +230,54 @@ describe('subscribe', () => {
       {
         status: 'TIMEOUT',
         want: false,
+      },
+    ];
+    async.forEach(testCases, (tc, doneEach) => {
+      this.webhookCalled = false;
+      const event = {
+        data: {
+          data: new Buffer(JSON.stringify({
+            status: tc.status,
+          })).toString('base64'),
+        },
+      };
+      lib.subscribe(event, () => {
+        this.webhookCalled.should.equal(tc.want, tc.status);
+        doneEach();
+      });
+    }, () => {
+      // clean the status list.
+      lib.GC_SLACK_STATUS = null;
+      done();
+    });
+  });
+
+  it('should send a message at start of build if WORKING is in status', (done) => {
+    lib.status = ['WORKING', 'SUCCESS', 'FAILURE', 'TIMEOUT', 'INTERNAL_ERROR'];
+    const testCases = [
+      {
+        status: 'QUEUED',
+        want: false,
+      },
+      {
+        status: 'WORKING',
+        want: true,
+      },
+      {
+        status: 'SUCCESS',
+        want: true,
+      },
+      {
+        status: 'FAILURE',
+        want: true,
+      },
+      {
+        status: 'INTERNAL_ERROR',
+        want: true,
+      },
+      {
+        status: 'TIMEOUT',
+        want: true,
       },
     ];
     async.forEach(testCases, (tc, doneEach) => {
