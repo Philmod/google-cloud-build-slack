@@ -1,0 +1,4 @@
+{
+  "SLACK_WEBHOOK_URL" : "my-slack-webhook-url",
+  "GC_SLACK_STATUS": ""
+}
