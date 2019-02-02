@@ -1,10 +1,10 @@
 {
   "name": "google-container-slack",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Slack integration for Google Cloud Container Builder, using Google Cloud Functions",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha --reporter spec",
+    "test": "node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec",
     "ci": "NODE_ENV=test node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec && node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov",
     "codecov": "node_modules/.bin/codecov --token=9f85adb7-4781-4cf9-80dd-c08882620b0a",
     "setup": "./setup.sh",
@@ -15,15 +15,15 @@
     "url": "git+https://github.com/Philmod/google-container-slack.git"
   },
   "dependencies": {
-    "@slack/client": "3.9.0",
-    "humanize-duration": "3.10.0"
+    "@slack/client": "4.8.0",
+    "humanize-duration": "3.17.0"
   },
   "devDependencies": {
-    "async": "^2.1.5",
+    "async": "^2.6.1",
     "codecov": "^3.1.0",
-    "mocha": "3.2.0",
+    "mocha": "5.2.0",
     "nyc": "^13.1.0",
-    "should": "11.2.1"
+    "should": "13.2.3"
   },
   "author": "Philmod <philippe.modard@gmail.com>",
   "license": "Apache-2.0"
