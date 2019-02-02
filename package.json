@@ -4,7 +4,7 @@
   "description": "Slack integration for Google Cloud Container Builder, using Google Cloud Functions",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha",
+    "test": "node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec",
     "ci": "NODE_ENV=test node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec && node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov",
     "codecov": "node_modules/.bin/codecov --token=9f85adb7-4781-4cf9-80dd-c08882620b0a",
     "setup": "./setup.sh",
