@@ -11,9 +11,12 @@ plugins:
 
 package:
   exclude:
-    - node_modules/**
-    - .gitignore
-    - .git/**
+    - '**'
+  include:
+    - index.js
+    - config.json
+    - package.json
+    - lib/**
 
 functions:
   cloudBuildSlackIntegration:
