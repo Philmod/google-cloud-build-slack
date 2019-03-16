@@ -1,6 +1,6 @@
 {
-  "name": "google-container-slack",
-  "version": "0.0.2",
+  "name": "google-cloud-build-slack",
+  "version": "0.1.0",
   "description": "Slack integration for Google Cloud Container Builder, using Google Cloud Functions",
   "main": "index.js",
   "scripts": {
@@ -11,16 +11,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Philmod/google-container-slack.git"
+    "url": "git+https://github.com/Philmod/google-cloud-build-slack.git"
   },
   "dependencies": {
-    "@slack/client": "4.8.0",
-    "humanize-duration": "3.17.0"
+    "@octokit/rest": "^16.19.0",
+    "@slack/client": "4.11.0",
+    "humanize-duration": "3.18.0",
+    "serverless-google-cloudfunctions": "^2.3.2"
   },
   "devDependencies": {
-    "async": "^2.6.1",
-    "mocha": "5.2.0",
-    "nyc": "^13.1.0",
+    "async": "^2.6.2",
+    "mocha": "6.0.2",
+    "nyc": "^13.3.0",
     "should": "13.2.3"
   },
   "author": "Philmod <philippe.modard@gmail.com>",
