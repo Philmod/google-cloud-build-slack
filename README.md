@@ -3,14 +3,23 @@
 Slack integration for Google Cloud Build, using Google Cloud Functions to post messages to Slack when a build reaches a specific state.
 
 ## Setup
-- Create a Slack app, and copy the webhook URL:
+
+1. Create a Slack app, and copy the webhook URL:
 ```
 export SLACK_WEBHOOK_URL=my-slack-webhook-url
 ```
-- Set the `PROJECT_ID` variable:
+2. Set the `PROJECT_ID` variable:
 ```
 export PROJECT_ID=my-project-id
 ```
+3. [Optionally] Set a github token to obtain github commit author info in slack messages if applicable.
+```
+export GITHUB_TOKEN="<token>"
+```
+4. Create function with [setup.sh (Option 1)](#script) OR [serverless framework (Option 2)](#serverless)
+
+<a name="script"/></a>
+### Option 1: Deploy with script
 - [Optionally] Set a specific `BUCKET_NAME` and a `FUNCTION_NAME`.
 - [Optionally] Set the status you want a message for, here are the default ones:
 ```
@@ -22,13 +31,33 @@ export GC_SLACK_STATUS="SUCCESS FAILURE TIMEOUT INTERNAL_ERROR"
 # OR
 npm run setup
 ```
+<a name="serverless"/></a>
+### Option 2: Deploy with serverless framework
+1. Install `serverless`
+```
+npm install serverless -g
+```
+2. Ensure that the value of `project.credentials` in `serverless.yml` points to [credentials with appropriate roles Serverless can use to create resources in your Project](https://serverless.com/framework/docs/providers/google/guide/credentials#get-credentials--assign-roles).
+
+3. [Deploy](https://serverless.com/framework/docs/providers/google/cli-reference/deploy/)
+```
+serverless deploy
+```
 
 ## Teardown
+
+### If deployed with script
 The teardown script will delete the function `FUNCTION_NAME`, and the bucket `BUCKET_NAME`.
 ```
 . ./teardown.sh
 # OR
 npm run teardown
+```
+
+### If deployed with serverless framework
+[Remove](https://serverless.com/framework/docs/providers/google/cli-reference/remove/)
+```
+serverless remove
 ```
 
 ## FAQ
@@ -47,6 +76,8 @@ exports BUCKET_NAME=my-bucket
 ```
 ### How can I update a function?
 If you use the setup script with the same `FUNCTION_NAME`, it will update the existing function.
+
+If you use serverless, simply re running `serverless deploy` will update the existing function.
 
 ### Where can I find the `SLACK_WEBHOOK_URL`?
 After creating an application on Slack, active the Incoming Webhooks. You'll find the url on that page:
