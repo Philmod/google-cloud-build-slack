@@ -99,7 +99,7 @@ module.exports.createSlackMessage = async (build) => {
       value: build.source.repoSource.branchName,
     });
 
-    if (token) {
+    if (commitAuthor) {
       message.attachments[0].fields.push({
         title: 'Commit Author',
         value: commitAuthor,
