@@ -1,7 +1,7 @@
 {
   "name": "google-cloud-build-slack",
   "version": "0.1.0",
-  "description": "Slack integration for Google Cloud Container Builder, using Google Cloud Functions",
+  "description": "Slack integration for Google Cloud Build, using Google Cloud Functions",
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/nyc node_modules/.bin/mocha --reporter spec",
