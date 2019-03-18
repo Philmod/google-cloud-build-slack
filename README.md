@@ -14,15 +14,13 @@ export PROJECT_ID=my-project-id
 ```
 3. [Optionally] Set a github token to obtain github commit author info in slack messages if applicable. Please refer to the [current limitations](#limitations).
 ```
-export GITHUB_TOKEN="<token>"
+export GITHUB_TOKEN=my-token
 ```
-
-4. Create function with [setup.sh (Option 1)](#script) OR [serverless framework (Option 2)](#serverless)
-
-5. - [Optionally] Set the status you want a message for, here are the default ones:
+4. [Optionally] Set the status you want a message for, here are the default ones:
 ```
 export GC_SLACK_STATUS="SUCCESS FAILURE TIMEOUT INTERNAL_ERROR"
 ```
+5. Create the function with [setup.sh (Option 1)](#script) OR [serverless framework (Option 2)](#serverless)
 
 <a name="script"/></a>
 ### Option 1: Deploy with script

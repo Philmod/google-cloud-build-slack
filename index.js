@@ -111,7 +111,7 @@ module.exports.createSlackMessage = async (build) => {
 
   // Add images to the message.
   const images = build.images || [];
-  for (let i = 0, len = images.length; i < len; i += 1) {
+  for (let i = 0, len = images.length; i < len; i++) {
     message.attachments[0].fields.push({
       title: 'Image',
       value: images[i],
