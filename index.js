@@ -71,15 +71,17 @@ module.exports.createSlackMessage = async (build) => {
   const message = {
     text,
     mrkdwn: true,
-    attachments: [{
-      color: STATUS_COLOR[build.status] || DEFAULT_COLOR,
-      title: 'Build logs',
-      title_link: build.logUrl,
-      fields,
-      footer: 'Google Cloud Build',
-      footer_icon: 'https://ssl.gstatic.com/pantheon/images/containerregistry/container_registry_color.png',
-      ts: timestamp,
-    }],
+    attachments: [
+      {
+        color: STATUS_COLOR[build.status] || DEFAULT_COLOR,
+        title: 'Build logs',
+        title_link: build.logUrl,
+        fields,
+        footer: 'Google Cloud Build',
+        footer_icon: 'https://ssl.gstatic.com/pantheon/images/containerregistry/container_registry_color.png',
+        ts: timestamp,
+      },
+    ],
   };
 
   // Add source information to the message.
