@@ -50,10 +50,6 @@ module.exports.createSlackMessage = async (build) => {
   const isWorking = build.status === 'WORKING';
   const timestamp = Math.round(((isWorking) ? buildStartTime : buildFinishTime).getTime() / 1000);
 
-  const commitAuthor = (token)
-    ? await getCommitAuthor(build)
-    : null;
-
   const text = (isWorking)
     ? `Build \`${build.id}\` started`
     : `Build \`${build.id}\` finished`;
@@ -98,6 +94,10 @@ module.exports.createSlackMessage = async (build) => {
       title: 'Branch',
       value: build.source.repoSource.branchName,
     });
+
+    const commitAuthor = (token)
+      ? await getCommitAuthor(build)
+      : null;
 
     if (commitAuthor) {
       message.attachments[0].fields.push({
