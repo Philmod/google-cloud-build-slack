@@ -76,7 +76,7 @@ module.exports.createSlackMessage = async (build) => {
       title: 'Build logs',
       title_link: build.logUrl,
       fields,
-      footer: 'Google Cloud Container Builder',
+      footer: 'Google Cloud Build',
       footer_icon: 'https://ssl.gstatic.com/pantheon/images/containerregistry/container_registry_color.png',
       ts: timestamp,
     }],
