@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const should = require('should');
 const async = require('async');
@@ -19,14 +18,14 @@ describe('eventToBuild', () => {
 });
 
 describe('createSlackMessage', () => {
-  it('should create a slack message', () => {
+  it('should create a slack message', async () => {
     const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
       status: 'SUCCESS',
       finishTime: '2017-03-19T00:08:12.220502Z',
     };
-    const message = lib.createSlackMessage(build);
+    const message = await lib.createSlackMessage(build);
 
     message.text.should.equal('Build `build-id` finished');
     should.exist(message.attachments);
@@ -38,7 +37,7 @@ describe('createSlackMessage', () => {
     attachment.fields[0].value.should.equal(build.status);
   });
 
-  it('should create a slack message saying the build started, with start timestamp if status WORKING', () => {
+  it('should create a slack message saying the build started, with start timestamp if status WORKING', async () => {
     const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
@@ -47,7 +46,7 @@ describe('createSlackMessage', () => {
       finishTime: null,
     };
 
-    const message = lib.createSlackMessage(build);
+    const message = await lib.createSlackMessage(build);
 
     message.text.should.equal('Build `build-id` started');
     should.exist(message.attachments);
@@ -59,7 +58,7 @@ describe('createSlackMessage', () => {
     attachment.fields[0].value.should.equal(build.status);
   });
 
-  it('should include the build duration as a field', () => {
+  it('should include the build duration as a field', async () => {
     const now = Date.now();
     const deltaInMinutes = 11;
     const build = {
@@ -69,13 +68,13 @@ describe('createSlackMessage', () => {
       startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
       finishTime: now,
     };
-    const message = lib.createSlackMessage(build);
+    const message = await lib.createSlackMessage(build);
 
     const attachment = message.attachments[0];
     attachment.fields[1].value.should.equal(`${deltaInMinutes} minutes`);
   });
 
-  it('should not include build duration as a field for start notifications', () => {
+  it('should not include build duration as a field for start notifications', async () => {
     const now = Date.now();
     const deltaInMinutes = 11;
     const build = {
@@ -85,13 +84,13 @@ describe('createSlackMessage', () => {
       startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
       finishTime: null,
     };
-    const message = lib.createSlackMessage(build);
+    const message = await lib.createSlackMessage(build);
 
     const attachment = message.attachments[0];
     attachment.fields.should.not.containEql({ title: 'Duration', value: `${deltaInMinutes} minutes` });
   });
 
-  it('should create a slack message with images', () => {
+  it('should create a slack message with images', async () => {
     const build = {
       id: 'build-id',
       logUrl: 'https://logurl.com',
@@ -99,7 +98,7 @@ describe('createSlackMessage', () => {
       finishTime: Date.now(),
       images: ['image-1', 'image-2'],
     };
-    const message = lib.createSlackMessage(build);
+    const message = await lib.createSlackMessage(build);
 
     const attachment = message.attachments[0];
     attachment.fields.should.have.length(nbCommonFields + build.images.length);
@@ -138,9 +137,9 @@ describe('createSlackMessage', () => {
         want: '#FBBC05',
       },
     ];
-    testCases.forEach((tc) => {
+    testCases.forEach(async (tc) => {
       build.status = tc.status;
-      const message = lib.createSlackMessage(build);
+      const message = await lib.createSlackMessage(build);
       message.attachments[0].color.should.equal(tc.want, tc.status);
     });
   });
@@ -173,8 +172,7 @@ describe('subscribe', () => {
     };
     lib.subscribe(event, () => {
       this.webhookCalled.should.be.true();
-      done();
-    });
+    }, done());
   });
 
   it('should not send a message for non final status (by default)', (done) => {
@@ -204,11 +202,11 @@ describe('subscribe', () => {
         want: true,
       },
     ];
-    async.forEach(testCases, (tc, doneEach) => {
+    async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
         data: {
-          data: new Buffer(JSON.stringify({
+          data: Buffer.from(JSON.stringify({
             status: tc.status,
           })).toString('base64'),
         },
@@ -248,11 +246,11 @@ describe('subscribe', () => {
         want: false,
       },
     ];
-    async.forEach(testCases, (tc, doneEach) => {
+    async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
         data: {
-          data: new Buffer(JSON.stringify({
+          data: Buffer.from(JSON.stringify({
             status: tc.status,
           })).toString('base64'),
         },
@@ -296,11 +294,11 @@ describe('subscribe', () => {
         want: true,
       },
     ];
-    async.forEach(testCases, (tc, doneEach) => {
+    async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
         data: {
-          data: new Buffer(JSON.stringify({
+          data: Buffer.from(JSON.stringify({
             status: tc.status,
           })).toString('base64'),
         },
