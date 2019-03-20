@@ -1,9 +1,9 @@
 const { IncomingWebhook } = require('@slack/client');
 const humanizeDuration = require('humanize-duration');
+const Octokit = require('@octokit/rest');
 const config = require('./config.json');
 
 const token = process.env.GITHUB_TOKEN;
-const { getCommitAuthor } = require('./lib/getCommitAuthor');
 
 module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 module.exports.status = config.GC_SLACK_STATUS;
@@ -18,7 +18,7 @@ module.exports.subscribe = async (event) => {
     return;
   }
 
-  const message = await module.exports.createSlackMessage(build);
+  const message = await module.exports.createSlackMessage(build, token);
   // Send message to slack.
   module.exports.webhook.send(message);
 };
@@ -37,7 +37,7 @@ const STATUS_COLOR = {
 };
 
 // createSlackMessage create a message from a build object.
-module.exports.createSlackMessage = async (build) => {
+module.exports.createSlackMessage = async (build, githubToken) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
@@ -91,20 +91,21 @@ module.exports.createSlackMessage = async (build) => {
       value: build.source.repoSource.branchName,
     });
 
-    const commitAuthor = (token)
-      ? await getCommitAuthor(build)
+    const githubCommit = (githubToken)
+      ? await module.exports.getGithubCommit(build)
       : null;
 
-    if (commitAuthor) {
+    if (githubCommit) {
       message.attachments[0].fields.push({
         title: 'Commit Author',
-        value: commitAuthor,
+        value: githubCommit.data.author.name,
       });
     }
   }
 
   // Add images to the message.
   const images = build.images || [];
+  // eslint-disable-next-line no-plusplus
   for (let i = 0, len = images.length; i < len; i++) {
     message.attachments[0].fields.push({
       title: 'Image',
@@ -112,4 +113,26 @@ module.exports.createSlackMessage = async (build) => {
     });
   }
   return message;
+};
+
+module.exports.octokit = new Octokit({
+  auth: `token ${token}`,
+});
+
+module.exports.getGithubCommit = async (build) => {
+  const cloudSourceRepo = build.source.repoSource.repoName;
+  const { commitSha } = build.sourceProvenance.resolvedRepoSource;
+
+  // format github_ownerName_repoName
+  const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
+
+  // get github commit
+  const githubCommit = await module.exports.octokit.git.getCommit({
+    commit_sha: commitSha,
+    owner: githubOwner,
+    repo: githubRepo,
+  });
+
+  // return github commit
+  return githubCommit;
 };
