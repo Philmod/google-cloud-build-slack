@@ -164,24 +164,20 @@ describe('subscribe', () => {
 
   beforeEach(() => {
     this.webhookCalled = false;
-    lib.webhook.send = (message, callback) => {
+    lib.webhook.send = () => {
       this.webhookCalled = true;
-      callback();
     };
   });
 
-  it('should subscribe to pubsub message and send a slack message', (done) => {
+  it('should subscribe to pubsub message and send a slack message', async () => {
     const event = {
-      data: {
-        data: base64Build,
-      },
+      data: base64Build,
     };
-    lib.subscribe(event, () => {
-      this.webhookCalled.should.be.true();
-    }, done());
+    await lib.subscribe(event);
+    this.webhookCalled.should.be.true();
   });
 
-  it('should not send a message for non final status (by default)', (done) => {
+  it('should not send a message for non final status (by default)', () => {
     const testCases = [
       {
         status: 'QUEUED',
@@ -211,20 +207,18 @@ describe('subscribe', () => {
     async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
-        data: {
-          data: Buffer.from(JSON.stringify({
-            status: tc.status,
-          })).toString('base64'),
-        },
+        data: Buffer.from(JSON.stringify({
+          status: tc.status,
+        })).toString('base64'),
       };
       lib.subscribe(event, () => {
         this.webhookCalled.should.equal(tc.want);
         doneEach();
       });
-    }, done);
+    });
   });
 
-  it('should send a message only for specified status', (done) => {
+  it('should send a message only for specified status', () => {
     lib.status = ['FAILURE', 'INTERNAL_ERROR'];
     const testCases = [
       {
@@ -255,11 +249,9 @@ describe('subscribe', () => {
     async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
-        data: {
-          data: Buffer.from(JSON.stringify({
-            status: tc.status,
-          })).toString('base64'),
-        },
+        data: Buffer.from(JSON.stringify({
+          status: tc.status,
+        })).toString('base64'),
       };
       lib.subscribe(event, () => {
         this.webhookCalled.should.equal(tc.want, tc.status);
@@ -268,11 +260,10 @@ describe('subscribe', () => {
     }, () => {
       // clean the status list.
       lib.GC_SLACK_STATUS = null;
-      done();
     });
   });
 
-  it('should send a message at start of build if WORKING is in status', (done) => {
+  it('should send a message at start of build if WORKING is in status', () => {
     lib.status = ['WORKING', 'SUCCESS', 'FAILURE', 'TIMEOUT', 'INTERNAL_ERROR'];
     const testCases = [
       {
@@ -303,11 +294,9 @@ describe('subscribe', () => {
     async.forEach(testCases, async (tc, doneEach) => {
       this.webhookCalled = false;
       const event = {
-        data: {
-          data: Buffer.from(JSON.stringify({
-            status: tc.status,
-          })).toString('base64'),
-        },
+        data: Buffer.from(JSON.stringify({
+          status: tc.status,
+        })).toString('base64'),
       };
       lib.subscribe(event, () => {
         this.webhookCalled.should.equal(tc.want, tc.status);
@@ -316,7 +305,6 @@ describe('subscribe', () => {
     }, () => {
       // clean the status list.
       lib.GC_SLACK_STATUS = null;
-      done();
     });
   });
 });

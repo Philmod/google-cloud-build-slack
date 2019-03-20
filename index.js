@@ -18,15 +18,9 @@ module.exports.subscribe = async (event) => {
     return;
   }
 
-  // Send message to slack.
   const message = await module.exports.createSlackMessage(build);
-  module.exports.webhook.send(message, async (err, res) => {
-    if (err) {
-      console.log('Error:', err);
-    } else {
-      console.log('Message sent: ', res);
-    }
-  });
+  // Send message to slack.
+  module.exports.webhook.send(message);
 };
 
 // eventToBuild transforms pubsub event message to a build object.
