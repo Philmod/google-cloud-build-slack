@@ -16,7 +16,6 @@ package:
     - index.js
     - config.json
     - package.json
-    - lib/**
 
 functions:
   cloudBuildSlackIntegration:
