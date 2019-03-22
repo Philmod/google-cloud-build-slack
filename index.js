@@ -3,13 +3,15 @@ const humanizeDuration = require('humanize-duration');
 const Octokit = require('@octokit/rest');
 const config = require('./config.json');
 
-const token = process.env.GITHUB_TOKEN;
-
 module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 module.exports.status = config.GC_SLACK_STATUS;
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = async (event) => {
+  const token = process.env.GITHUB_TOKEN;
+  const octokit = token && new Octokit({
+    auth: `token ${token}`,
+  });
   const build = module.exports.eventToBuild(event.data);
 
   // Skip if the current status is not in the status list.
@@ -18,7 +20,7 @@ module.exports.subscribe = async (event) => {
     return;
   }
 
-  const message = await module.exports.createSlackMessage(build, token);
+  const message = await module.exports.createSlackMessage(build, octokit);
   // Send message to slack.
   module.exports.webhook.send(message);
 };
@@ -36,8 +38,26 @@ const STATUS_COLOR = {
   INTERNAL_ERROR: '#EA4335', // red
 };
 
+const getGithubCommit = async (build, octokit) => {
+  const cloudSourceRepo = build.source.repoSource.repoName;
+  const { commitSha } = build.sourceProvenance.resolvedRepoSource;
+
+  // format github_ownerName_repoName
+  const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
+
+  // get github commit
+  const githubCommit = await octokit.git.getCommit({
+    commit_sha: commitSha,
+    owner: githubOwner,
+    repo: githubRepo,
+  });
+
+  // return github commit
+  return githubCommit;
+};
+
 // createSlackMessage create a message from a build object.
-module.exports.createSlackMessage = async (build, githubToken) => {
+module.exports.createSlackMessage = async (build, octokit) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
@@ -91,9 +111,7 @@ module.exports.createSlackMessage = async (build, githubToken) => {
       value: build.source.repoSource.branchName,
     });
 
-    const githubCommit = (githubToken)
-      ? await module.exports.getGithubCommit(build)
-      : null;
+    const githubCommit = octokit && await getGithubCommit(build, octokit);
 
     if (githubCommit) {
       message.attachments[0].fields.push({
@@ -113,26 +131,4 @@ module.exports.createSlackMessage = async (build, githubToken) => {
     });
   }
   return message;
-};
-
-module.exports.octokit = new Octokit({
-  auth: `token ${token}`,
-});
-
-module.exports.getGithubCommit = async (build) => {
-  const cloudSourceRepo = build.source.repoSource.repoName;
-  const { commitSha } = build.sourceProvenance.resolvedRepoSource;
-
-  // format github_ownerName_repoName
-  const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
-
-  // get github commit
-  const githubCommit = await module.exports.octokit.git.getCommit({
-    commit_sha: commitSha,
-    owner: githubOwner,
-    repo: githubRepo,
-  });
-
-  // return github commit
-  return githubCommit;
 };
