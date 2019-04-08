@@ -8,21 +8,25 @@ module.exports.status = config.GC_SLACK_STATUS;
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = async (event) => {
-  const token = process.env.GITHUB_TOKEN;
-  const octokit = token && new Octokit({
-    auth: `token ${token}`,
-  });
-  const build = module.exports.eventToBuild(event.data);
+  try {
+    const token = process.env.GITHUB_TOKEN;
+    const octokit = token && new Octokit({
+      auth: `token ${token}`,
+    });
+    const build = module.exports.eventToBuild(event.data);
 
-  // Skip if the current status is not in the status list.
-  const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
-  if (status.indexOf(build.status) === -1) {
-    return;
+    // Skip if the current status is not in the status list.
+    const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+    if (status.indexOf(build.status) === -1) {
+      return;
+    }
+
+    const message = await module.exports.createSlackMessage(build, octokit);
+    // Send message to slack.
+    module.exports.webhook.send(message);
+  } catch (err) {
+    module.exports.webhook.send(`Error: ${err}`);
   }
-
-  const message = await module.exports.createSlackMessage(build, octokit);
-  // Send message to slack.
-  module.exports.webhook.send(message);
 };
 
 // eventToBuild transforms pubsub event message to a build object.
