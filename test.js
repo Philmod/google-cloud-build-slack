@@ -186,8 +186,9 @@ describe('subscribe', () => {
 
   beforeEach(() => {
     this.webhookCalled = false;
-    lib.webhook.send = () => {
+    lib.webhook.send = (message) => {
       this.webhookCalled = true;
+      this.message = message;
     };
   });
 
@@ -328,5 +329,19 @@ describe('subscribe', () => {
       // clean the status list.
       lib.GC_SLACK_STATUS = null;
     });
+  });
+
+  it('octokit should be defined if token is set', async () => {
+    const event = {
+      data: base64Build,
+    };
+    await lib.subscribe(event, 'kuhasdkasjhd');
+    this.webhookCalled.should.be.true();
+  });
+
+  it('should send error when something goes wrong', async () => {
+    await lib.subscribe('testError');
+    this.webhookCalled.should.be.true();
+    this.message.should.equal('Error: TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type undefined');
   });
 });
