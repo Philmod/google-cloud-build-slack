@@ -6,6 +6,28 @@ const config = require('./config.json');
 module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 module.exports.status = config.GC_SLACK_STATUS;
 
+module.exports.getGithubCommit = async (build, octokit) => {
+  try {
+    const cloudSourceRepo = build.source.repoSource.repoName;
+    const { commitSha } = build.sourceProvenance.resolvedRepoSource;
+
+    // format github_ownerName_repoName
+    const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
+
+    // get github commit
+    const githubCommit = await octokit.git.getCommit({
+      commit_sha: commitSha,
+      owner: githubOwner,
+      repo: githubRepo,
+    });
+
+    // return github commit
+    return githubCommit;
+  } catch (err) {
+    return err;
+  }
+};
+
 // subscribe is the main function called by GCF.
 module.exports.subscribe = async (event) => {
   try {
@@ -21,7 +43,9 @@ module.exports.subscribe = async (event) => {
       return;
     }
 
-    const message = await module.exports.createSlackMessage(build, octokit);
+    const githubCommit = module.exports.getGithubCommit(build, octokit);
+
+    const message = await module.exports.createSlackMessage(build, githubCommit);
     // Send message to slack.
     module.exports.webhook.send(message);
   } catch (err) {
@@ -42,26 +66,8 @@ const STATUS_COLOR = {
   INTERNAL_ERROR: '#EA4335', // red
 };
 
-const getGithubCommit = async (build, octokit) => {
-  const cloudSourceRepo = build.source.repoSource.repoName;
-  const { commitSha } = build.sourceProvenance.resolvedRepoSource;
-
-  // format github_ownerName_repoName
-  const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
-
-  // get github commit
-  const githubCommit = await octokit.git.getCommit({
-    commit_sha: commitSha,
-    owner: githubOwner,
-    repo: githubRepo,
-  });
-
-  // return github commit
-  return githubCommit;
-};
-
 // createSlackMessage create a message from a build object.
-module.exports.createSlackMessage = async (build, octokit) => {
+module.exports.createSlackMessage = async (build, githubCommit) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
@@ -114,8 +120,6 @@ module.exports.createSlackMessage = async (build, octokit) => {
       title: 'Branch',
       value: build.source.repoSource.branchName,
     });
-
-    const githubCommit = octokit && await getGithubCommit(build, octokit);
 
     if (githubCommit) {
       message.attachments[0].fields.push({
