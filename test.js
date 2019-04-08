@@ -116,7 +116,7 @@ describe('createSlackMessage', () => {
 
   it('should include the commit author in the message if a github commit is retrieved', async () => {
     const build = lib.eventToBuild(base64Build);
-    build.source.repoSource.repoName = 'github_ArtOfWar_Chapter1';
+    build.source.repoSource.repoName = 'github_artofwar_chapter1';
     const octokit = new Octokit({
       auth: 'token sjhfgsa',
     });
@@ -128,7 +128,8 @@ describe('createSlackMessage', () => {
           },
         },
       });
-    const message = await lib.createSlackMessage(build, octokit);
+    const githubCommit = await lib.getGithubCommit(build, octokit);
+    const message = await lib.createSlackMessage(build, githubCommit);
     const attachment = message.attachments[0];
     attachment.fields[4].value.should.equal('Sun Tzu');
     stub.reset();
