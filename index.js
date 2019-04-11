@@ -43,7 +43,7 @@ module.exports.subscribe = async (event) => {
       return;
     }
 
-    const githubCommit = module.exports.getGithubCommit(build, octokit);
+    const githubCommit = await module.exports.getGithubCommit(build, octokit);
 
     const message = await module.exports.createSlackMessage(build, githubCommit);
     // Send message to slack.
