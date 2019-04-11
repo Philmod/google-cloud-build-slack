@@ -1,0 +1,28 @@
+service: gcb-slack
+
+provider:
+  name: google
+  runtime: nodejs8
+  project: ${env:PROJECT_ID}
+  credentials: ~/.gcloud/keyfile.json # path must be absolute
+
+plugins:
+  - serverless-google-cloudfunctions
+
+package:
+  exclude:
+    - '**'
+  include:
+    - index.js
+    - config.json
+    - package.json
+
+functions:
+  cloudBuildSlackIntegration:
+    handler: subscribe
+    events:
+      - event:
+          eventType: providers/cloud.pubsub/eventTypes/topic.publish
+          resource: projects/${self:provider.project}/topics/cloud-builds
+    environment:
+      GITHUB_TOKEN: ${env:GITHUB_TOKEN}
