@@ -343,6 +343,6 @@ describe('subscribe', () => {
   it('should send error when something goes wrong', async () => {
     await lib.subscribe('testError');
     this.webhookCalled.should.be.true();
-    this.message.should.equal('Error: TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type undefined');
+    this.message.should.containEql('Error');
   });
 });
