@@ -131,14 +131,9 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
 
   // Add image(s) to the message.
   const images = build.images || [];
-  if (images.length === 1) {
+  if (images.length) {
     message.attachments[0].fields.push({
-      title: 'Image',
-      value: images[0],
-    });
-  } else if (images.length > 1) {
-    message.attachments[0].fields.push({
-      title: 'Images',
+      title: `Image${(images.length > 1) ? 's' : ''}`,
       value: images.join('\n'),
     });
   }
