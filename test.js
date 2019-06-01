@@ -26,7 +26,6 @@ describe('createSlackMessage', () => {
       finishTime: '2017-03-19T00:08:12.220502Z',
       source: {},
     };
-    // const build = lib.eventToBuild(base64Build);
     const message = await lib.createSlackMessage(build);
 
     message.text.should.equal(`Build \`${build.id}\` finished`);
