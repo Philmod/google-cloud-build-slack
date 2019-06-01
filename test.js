@@ -24,10 +24,12 @@ describe('createSlackMessage', () => {
       logUrl: 'https://logurl.com',
       status: 'SUCCESS',
       finishTime: '2017-03-19T00:08:12.220502Z',
+      source: {},
     };
+    // const build = lib.eventToBuild(base64Build);
     const message = await lib.createSlackMessage(build);
 
-    message.text.should.equal('Build `build-id` finished');
+    message.text.should.equal(`Build \`${build.id}\` finished`);
     should.exist(message.attachments);
     message.attachments.should.have.length(1);
     const attachment = message.attachments[0];
@@ -44,6 +46,7 @@ describe('createSlackMessage', () => {
       status: 'WORKING',
       startTime: '2017-03-19T00:08:12.220502Z',
       finishTime: null,
+      source: {},
     };
 
     const message = await lib.createSlackMessage(build);
@@ -67,6 +70,7 @@ describe('createSlackMessage', () => {
       status: 'SUCCESS',
       startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
       finishTime: now,
+      source: {},
     };
     const message = await lib.createSlackMessage(build);
 
@@ -83,6 +87,7 @@ describe('createSlackMessage', () => {
       status: 'WORKING',
       startTime: new Date(now - deltaInMinutes * MS_PER_MINUTE),
       finishTime: null,
+      source: {},
     };
     const message = await lib.createSlackMessage(build);
 
@@ -97,13 +102,13 @@ describe('createSlackMessage', () => {
       status: 'SUCCESS',
       finishTime: Date.now(),
       images: ['image-1', 'image-2'],
+      source: {},
     };
     const message = await lib.createSlackMessage(build);
 
     const attachment = message.attachments[0];
-    attachment.fields.should.have.length(nbCommonFields + build.images.length);
-    attachment.fields[nbCommonFields].value.should.equal('image-1');
-    attachment.fields[nbCommonFields + 1].value.should.equal('image-2');
+    attachment.fields.should.have.length(nbCommonFields + 1);
+    attachment.fields[nbCommonFields].value.should.equal('image-1\nimage-2');
   });
 
   it('should include the source info in the message', async () => {
