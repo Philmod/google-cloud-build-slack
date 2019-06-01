@@ -109,16 +109,16 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
   };
 
   // Add source information to the message.
-  const source = build.source || null;
-  if (source) {
+  const { repoSource } = build.source || null;
+  if (repoSource) {
     message.attachments[0].fields.push({
       title: 'Repository',
-      value: build.source.repoSource.repoName,
+      value: repoSource.repoName,
     });
 
     message.attachments[0].fields.push({
       title: 'Branch',
-      value: build.source.repoSource.branchName,
+      value: repoSource.branchName,
     });
 
     if (githubCommit) {
@@ -129,13 +129,17 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
     }
   }
 
-  // Add images to the message.
+  // Add image(s) to the message.
   const images = build.images || [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0, len = images.length; i < len; i++) {
+  if (images.length === 1) {
     message.attachments[0].fields.push({
       title: 'Image',
-      value: images[i],
+      value: images[0],
+    });
+  } else if (images.length > 1) {
+    message.attachments[0].fields.push({
+      title: 'Images',
+      value: images.join('\n'),
     });
   }
   return message;
