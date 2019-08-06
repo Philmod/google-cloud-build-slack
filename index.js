@@ -108,9 +108,18 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
     ],
   };
 
+  var repoName, branchName;
+  if (build.source && build.source.repoSource) {
+    repoName = build.source.repoSource.repoName;
+    branchName = build.source.repoSource.branchName;
+  }
+  else if (build.substitutions) {
+    repoName = build.substitutions.REPO_NAME;
+    branchName = build.substitutions.BRANCH_NAME;
+  }
+
   // Add source information to the message.
-  const { repoSource } = build.source || null;
-  if (repoSource) {
+  if (repoName && branchName) {
     message.attachments[0].fields.push({
       title: 'Repository',
       value: repoSource.repoName,
