@@ -94,3 +94,6 @@ In the case where a `BUCKET_NAME` is not defined, a random one is generated. And
 ### What are the limitations of using github token to get github commit author info?
 
 For github commit author info to be displayed, the cloud source repositories must be in the form of `github_<OWNER>_<REPO>` and there cannot be underscores in either `<OWNER>` or `<REPO>`. A possible solution to bypass this limitation would be to retrieve owner and repo info directly from [GitHubEventsConfig](https://cloud.google.com/cloud-build/docs/api/reference/rest/v1/projects.triggers#githubeventsconfig).
+
+
+
