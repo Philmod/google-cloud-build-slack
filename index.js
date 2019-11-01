@@ -109,7 +109,7 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
   };
 
   // Add source information to the message.
-  const { repoSource } = build.source || null;
+  const repoSource = build.source && build.source.repoSource;
   if (repoSource) {
     message.attachments[0].fields.push({
       title: 'Repository',
