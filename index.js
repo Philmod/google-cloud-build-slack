@@ -1,51 +1,46 @@
-const { IncomingWebhook } = require('@slack/client');
 const humanizeDuration = require('humanize-duration');
-const Octokit = require('@octokit/rest');
-const config = require('./config.json');
+const { IncomingWebhook } = require('@slack/client');
+const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
-module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
-module.exports.status = config.GC_SLACK_STATUS;
+// webhook is the Slack client, it will be initialized in the main function.
+module.exports.webhook;
 
-module.exports.getGithubCommit = async (build, octokit) => {
-  try {
-    const cloudSourceRepo = build.source.repoSource.repoName;
-    const { commitSha } = build.sourceProvenance.resolvedRepoSource;
+// Get Webhook URL from Secret Manager.
+async function getWebhookUrl() {
+  const client = new SecretManagerServiceClient();
+  // TODO(philmod): projects/110661976237/secrets/slack-kernelops-webhook-url/versions/latest
+  const res = await client.accessSecretVersion({name: process.env.SECRET_MANAGER_VERSION});
+  return res && res[0] && res[0].payload.data.toString('utf8');
+}
 
-    // format github_ownerName_repoName
-    const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
-
-    // get github commit
-    const githubCommit = await octokit.git.getCommit({
-      commit_sha: commitSha,
-      owner: githubOwner,
-      repo: githubRepo,
-    });
-
-    // return github commit
-    return githubCommit;
-  } catch (err) {
-    return err;
-  }
-};
+module.exports.createWebhookClient = async () => {
+  const slackWebhookUrl = await getWebhookUrl();
+  return new IncomingWebhook(slackWebhookUrl);
+}
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = async (event) => {
   try {
-    const token = process.env.GITHUB_TOKEN;
-    const octokit = token && new Octokit({
-      auth: `token ${token}`,
-    });
     const build = module.exports.eventToBuild(event.data);
+    console.log(`Build: ${JSON.stringify(build)}`);
+
+    // Filter out builds that don't have a "notification" tag.
+    if (!build.tags || !build.tags.includes('notification')) {
+      console.log(`Build ${build.id} doesn't have a 'notification' tag, ignoring.`)
+      return;
+    }
 
     // Skip if the current status is not in the status list.
-    const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+    const status = ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
     if (status.indexOf(build.status) === -1) {
       return;
     }
 
-    const githubCommit = await module.exports.getGithubCommit(build, octokit);
+    const message = module.exports.createSlackMessage(build);
 
-    const message = await module.exports.createSlackMessage(build, githubCommit);
+    // Create Slack client.
+    module.exports.webhook = await module.exports.createWebhookClient();
+
     // Send message to slack.
     module.exports.webhook.send(message);
   } catch (err) {
@@ -60,36 +55,41 @@ const DEFAULT_COLOR = '#4285F4'; // blue
 const STATUS_COLOR = {
   QUEUED: DEFAULT_COLOR,
   WORKING: DEFAULT_COLOR,
-  SUCCESS: '#34A853', // green
-  FAILURE: '#EA4335', // red
-  TIMEOUT: '#FBBC05', // yellow
+  SUCCESS: '#34A853',        // green
+  FAILURE: '#EA4335',        // red
+  TIMEOUT: '#FBBC05',        // yellow
   INTERNAL_ERROR: '#EA4335', // red
 };
 
 // createSlackMessage create a message from a build object.
-module.exports.createSlackMessage = async (build, githubCommit) => {
+module.exports.createSlackMessage = (build) => {
   const buildFinishTime = new Date(build.finishTime);
   const buildStartTime = new Date(build.startTime);
 
+  const isQueued = build.status === 'QUEUED';
   const isWorking = build.status === 'WORKING';
   const timestamp = Math.round(((isWorking) ? buildStartTime : buildFinishTime).getTime() / 1000);
 
-  const text = (isWorking)
-    ? `Build \`${build.id}\` started`
-    : `Build \`${build.id}\` finished`;
+  let verb = 'is queued';
+  switch (build.status) {
+    case 'WORKING':
+      verb = 'started';
+      break;
+    case 'SUCCESS':
+      verb = 'succeeded';
+      break;
+    case 'FAILURE':
+    case 'INTERNAL_ERROR':
+    case 'TIMEOUT':
+      verb = 'failed';
+      break;
+  }
 
-  const fields = [{
-    title: 'Status',
-    value: build.status,
-  }];
+  let text = `Build \`${build.id}\` ${verb}`;
 
-  if (!isWorking) {
+  if (!isQueued && !isWorking) {
     const buildTime = humanizeDuration(buildFinishTime - buildStartTime);
-
-    fields.push({
-      title: 'Duration',
-      value: buildTime,
-    });
+    text += ` (in ${buildTime})`;
   }
 
   const message = {
@@ -100,9 +100,9 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
         color: STATUS_COLOR[build.status] || DEFAULT_COLOR,
         title: 'Build logs',
         title_link: build.logUrl,
-        fields,
+        fields: [],
         footer: 'Google Cloud Build',
-        footer_icon: 'https://ssl.gstatic.com/pantheon/images/containerregistry/container_registry_color.png',
+        footer_icon: 'https://cloud.google.com/container-registry/images/builder.png',
         ts: timestamp,
       },
     ],
@@ -121,20 +121,17 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
   if (repoName && branchName) {
     message.attachments[0].fields.push({
       title: 'Repository',
-      value: repoName,
+      value: `${repoName} (${branchName})`,
     });
+  }
 
+  // Add tag(s) to the message.
+  const tags = build.tags || [];
+  if (tags.length) {
     message.attachments[0].fields.push({
-      title: 'Branch',
-      value: branchName,
+      title: `Tag${(tags.length > 1) ? 's' : ''}`,
+      value: tags.join(', '),
     });
-
-    if (githubCommit) {
-      message.attachments[0].fields.push({
-        title: 'Commit Author',
-        value: githubCommit.data.author.name,
-      });
-    }
   }
 
   // Add image(s) to the message.
@@ -142,7 +139,7 @@ module.exports.createSlackMessage = async (build, githubCommit) => {
   if (images.length) {
     message.attachments[0].fields.push({
       title: `Image${(images.length > 1) ? 's' : ''}`,
-      value: images.join('\n'),
+      value: images.join(', '),
     });
   }
   return message;
