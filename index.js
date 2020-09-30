@@ -8,7 +8,6 @@ module.exports.webhook;
 // Get Webhook URL from Secret Manager.
 async function getWebhookUrl() {
   const client = new SecretManagerServiceClient();
-  // TODO(philmod): projects/110661976237/secrets/slack-kernelops-webhook-url/versions/latest
   const res = await client.accessSecretVersion({name: process.env.SECRET_MANAGER_VERSION});
   return res && res[0] && res[0].payload.data.toString('utf8');
 }
